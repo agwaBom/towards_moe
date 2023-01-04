@@ -1,2 +1,3 @@
 *.csv
 *.pt
+./dataset/s1_data/*

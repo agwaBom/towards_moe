@@ -5,12 +5,12 @@ import torch.nn.functional as F
 class Custom_Conv1d(nn.Module):
     def __init__(self, filter_size, patch_dim, linear=True, small_init=True):
         super(Custom_Conv1d, self).__init__()
-        self.conv = nn.Conv1d(in_channels=1, out_channels=filter_size*2, kernel_size=int(patch_dim), stride=int(patch_dim))
+        self.conv = nn.Conv1d(in_channels=1, out_channels=filter_size, kernel_size=int(patch_dim), stride=int(patch_dim))
         self.filter_size = filter_size
         self.linear = linear
         if small_init:
-            self.conv.weight = torch.nn.Parameter(self.conv.weight*0.0001) 
-            self.conv.bias = torch.nn.Parameter(self.conv.bias*0.0001) 
+            self.conv.weight = torch.nn.Parameter(self.conv.weight*0.1) 
+            self.conv.bias = torch.nn.Parameter(self.conv.bias*0.1) 
 
     def cubic_act(self, x):
         return x**3
@@ -22,7 +22,7 @@ class Custom_Conv1d(nn.Module):
         if self.linear == False:
             x = self.cubic_act(x)
         x = torch.sum(x, dim=-1)
-        output = torch.stack([torch.sum(x[:,:self.filter_size],1), torch.sum(x[:,self.filter_size:],1)]).transpose(1,0)
+        output = torch.stack([torch.sum(x[:,:self.filter_size//2],1), torch.sum(x[:,self.filter_size//2:],1)]).transpose(1,0)
 
         return output
 
@@ -53,11 +53,9 @@ class MoE(nn.Module):
 
         # Calculate π : [num_data, num_expert]
         if self.strategy == 'top-1':
-            h = h + torch.rand(x.shape[0], x.shape[1])
-
+            h = h + torch.rand((h.shape[0], h.shape[1]))
             # this will be argmax top 1 routing
             pi_val, pi_idx = h.topk(k=1, dim=-1) 
-
             mask = F.one_hot(pi_idx, self.num_expert).type(torch.float)
             density = mask.mean(dim=0)
             density_h = h.mean(dim=0)
@@ -66,7 +64,7 @@ class MoE(nn.Module):
             # We did not implement mask_flat that controls exceeded expert_capacity
             # Original paper not used it
             combine_tensor = (pi_val[..., None] * mask)
-
+            
             dispatch_tensor = torch.einsum('bne->ben', mask)
             
             # x: [num_data, 1, num_patches * patch_dim]
@@ -78,11 +76,9 @@ class MoE(nn.Module):
                 output.append(self.expert[i](expert_inputs[i]))
             output = torch.stack(output, dim=0)
             # output: [num_expert, num_data, 2]
-
             # dispatch_tensor [num_data, num_expert, 1]
             combine_tensor = torch.transpose(combine_tensor, dim0=-2, dim1=-1)
             output = torch.einsum("dei,edj->dj", combine_tensor, output)
-
         else:
             # [to-do] soft-routing model
             pi_val = self.softmax(h)
