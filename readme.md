@@ -4,6 +4,8 @@ This is my implementation of "Towards Understanding Mixture of Experts in Deep L
 
 Which still has a lot of work to do.
 
+**NOTE: I am not an author of the paper!!**
+
 ## Future work
 ### Model side
 1. Add dispatch entropy evaluation
