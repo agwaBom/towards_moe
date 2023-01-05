@@ -1,10 +1,35 @@
 # A Pytorch Implementation of "Towards Understanding Mixture of Experts in Deep Learning"
 
-This is my implementation of "Towards Understanding Mixture of Experts in Deep Learning" which is accepted at NeurIPS 2022
+This is my implementation of "Towards Understanding Mixture of Experts in Deep Learning" which is accepted at NeurIPS 2022.
 
 Which still has a lot of work to do.
 
 **NOTE: I am not an author of the paper!!**
+
+Below is the tsne visualization of synthetic data.
+<p align = "center">
+<img src="images/synthetic_cluster.png" width="500">
+</p>
+<p align = "center">
+Figure 1. Each color denotes a cluster in synthetic data
+</p>
+
+<p align = "center">
+<img src="images/synthetic_label.png" width="500">
+</p>
+<p align = "center">
+Figure 2. Labels on each data point in synthetic data
+</p>
+
+## Performance
+- Performance after 500 epoch
+
+|                    | Test accuracy (%) | Number of Filters |
+|--------------------|-------------------|-------------------|
+| Single (linear)    |              52.3 |               512 |
+| Single (nonlinear) |              73.2 |               512 |
+| MoE (linear)       |              99.8 |        128 (16*8) |
+| MoE (nonlinear)    |              99.7 |        128 (16*8) |
 
 ## Future work
 ### Model side

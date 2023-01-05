@@ -73,13 +73,17 @@ def main():
 
     # If we want to save per cluster
     for i, d in enumerate(K_all_data):
-        torch.save(d, './cluster_%d_data.pt'%i)
+        torch.save(d, './dataset/cluster_%d_data.pt'%i)
+
+    for i, d in enumerate(K_all_data_label):
+        torch.save(d, './dataset/cluster_%d_label.pt'%i)
+
 
     # If we want to save all in one
-    torch.save(torch.cat(K_all_data, dim=0), './cluster_all_data.pt')
+    torch.save(torch.cat(K_all_data, dim=0), './dataset/cluster_all_data.pt')
 
     # Label
-    torch.save(torch.Tensor([j for i in K_all_data_label for j in i]), './cluster_all_data_label.pt')
+    torch.save(torch.Tensor([j for i in K_all_data_label for j in i]), './dataset/cluster_all_label.pt')
 
 if __name__ == "__main__":
     main()

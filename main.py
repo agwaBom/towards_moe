@@ -11,7 +11,7 @@ def read_data(data_path, label_path):
     x_data = torch.flatten(x_data, start_dim=1)
     x_data = x_data.unsqueeze(dim=1)
     y_data = torch.load(label_path)
-    #y_data = torch.where(y_data > 0, y_data, 0.)
+    y_data = torch.where(y_data > 0, y_data, 0.)
 
     return (x_data.cpu(), y_data.cpu())
 
@@ -30,9 +30,9 @@ def main():
     parser.add_argument("-init_scale", default=1)
 
     parser.add_argument("-num_patches", default=4)
-    parser.add_argument("-num_expert", default=8)
+    parser.add_argument("-num_expert", default=1)
     parser.add_argument("-patch_dim", default=50)
-    parser.add_argument("-filter_size", default=16)
+    parser.add_argument("-filter_size", default=512)
     parser.add_argument("-linear", default=True)
 
     opt =  parser.parse_args()
