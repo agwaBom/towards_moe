@@ -17,14 +17,14 @@ Below is the tsne visualization of synthetic data.
 <img src="images/synthetic_cluster.png" width="500">
 </p>
 <p align = "center">
-Figure 1. Each color denotes a cluster in synthetic data
+Figure 2. Each color denotes a cluster in synthetic data
 </p>
 
 <p align = "center">
 <img src="images/synthetic_label.png" width="500">
 </p>
 <p align = "center">
-Figure 2. Labels on each data point in synthetic data
+Figure 3. Labels on each data point in synthetic data
 </p>
 
 
@@ -37,7 +37,7 @@ Figure 2. Labels on each data point in synthetic data
 <img src="images/towards_moe_test_loss.png" width="1000">
 </p>
 <p align = "center">
-Figure 3. Accuracy and loss graph on each setting of model
+Figure 4. Accuracy and loss graph on each setting of model
 </p>
 
 |                    | Test accuracy (%) | Number of Filters |
