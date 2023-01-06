@@ -49,8 +49,8 @@ def main():
     test_data = read_data(opt.test_data_path, opt.test_label_path)
 
     model = MoE(opt.num_patches, opt.num_expert, opt.patch_dim, opt.filter_size, device, opt.linear, strategy='top-1')
-    #optimizer_1 = optim.SGD(model.expert.parameters(), lr=opt.lr_global)
-    optimizer_1 = optim.Adam(model.parameters(), lr=0.003, weight_decay=5e-4)
+    optimizer_1 = optim.SGD(model.expert.parameters(), lr=opt.lr_global)
+    #optimizer_1 = optim.Adam(model.parameters(), lr=0.003, weight_decay=5e-4)
 
     optimizer_2 = Frobenius_SGD(model.gating_param.parameters(), lr=opt.lr_router)
     criterion = torch.nn.CrossEntropyLoss()
@@ -71,7 +71,7 @@ def train(n_epoch, train_data, test_data, model, optimizer_1, optimizer_2, crite
     for epoch in range(1, n_epoch+1):
         model.train()
         optimizer_1.zero_grad()
-        #optimizer_2.zero_grad()
+        optimizer_2.zero_grad()
 
         output, dispatch, load_balancing_loss = model(train_data[0])
         train_loss = criterion(output, train_data[1].type(torch.LongTensor).to(device)) #+ load_balancing_loss * 0.001
@@ -81,7 +81,7 @@ def train(n_epoch, train_data, test_data, model, optimizer_1, optimizer_2, crite
 
         train_loss.backward()
         optimizer_1.step()
-        #optimizer_2.step()
+        optimizer_2.step()
 
         model.eval()
         with torch.no_grad():
