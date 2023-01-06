@@ -27,7 +27,7 @@ class Custom_Conv1d(nn.Module):
         return output
 
 class MoE(nn.Module):
-    def __init__(self, num_patches, num_expert, patch_dim, filter_size, linear=True, strategy='top-1'):
+    def __init__(self, num_patches, num_expert, patch_dim, filter_size, device, linear=True, strategy='top-1'):
         super(MoE, self).__init__()
         self.gating_param = nn.Conv1d(in_channels=1, out_channels=num_expert, kernel_size=int(patch_dim*num_patches/num_patches), stride=int(patch_dim*num_patches/num_patches))
         self.softmax = nn.Softmax(dim=-1)
@@ -36,6 +36,7 @@ class MoE(nn.Module):
         self.strategy = strategy # Gating strategy
 
         self.expert = nn.ModuleList()
+        self.device = device
         for i in range(num_expert):
             self.expert.append(Custom_Conv1d(filter_size, patch_dim, linear))
 
@@ -53,7 +54,7 @@ class MoE(nn.Module):
 
         # Calculate π : [num_data, num_expert]
         if self.strategy == 'top-1':
-            h = h + torch.rand((h.shape[0], h.shape[1]))
+            h = h + torch.rand((h.shape[0], h.shape[1])).to(self.device)
             # this will be argmax top 1 routing
             pi_val, pi_idx = h.topk(k=1, dim=-1) 
             mask = F.one_hot(pi_idx, self.num_expert).type(torch.float)
