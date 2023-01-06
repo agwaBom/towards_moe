@@ -24,11 +24,18 @@ Figure 2. Labels on each data point in synthetic data
 ## Performance
 - Performance after 500 epoch
 
+<p align = "center">
+<img src="images/towards_moe_test_accuracy.png" width="1000">
+</p>
+<p align = "center">
+Figure 3. Accuracy graph on each setting of model
+</p>
+
 |                    | Test accuracy (%) | Number of Filters |
 |--------------------|-------------------|-------------------|
-| Single (linear)    |              52.3 |               512 |
+| Single (linear)    |              59.3 |               512 |
 | Single (nonlinear) |              73.2 |               512 |
-| MoE (linear)       |              99.8 |        128 (16*8) |
+| MoE (linear)       |              99.7 |        128 (16*8) |
 | MoE (nonlinear)    |              99.7 |        128 (16*8) |
 
 ## Future work
