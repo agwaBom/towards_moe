@@ -3,6 +3,7 @@ import torch.optim as optim
 from model.optim import Frobenius_SGD
 import argparse
 from model.moe_synthetic import MoE
+from torch.utils.tensorboard import SummaryWriter
 
 torch.manual_seed(111)
 
@@ -35,7 +36,11 @@ def main():
     parser.add_argument("-filter_size", default=512)
     parser.add_argument("-linear", default=True)
 
+    parser.add_argument("-tensorboard_path", default="./runs/synthetic_moe_linear")
+
     opt =  parser.parse_args()
+
+    writer = SummaryWriter(opt.tensorboard_path)
 
     train_data = read_data(opt.train_data_path, opt.train_label_path)
     test_data = read_data(opt.test_data_path, opt.test_label_path)
@@ -45,36 +50,41 @@ def main():
     optimizer_2 = Frobenius_SGD(model.gating_param.parameters(), lr=opt.lr_router)
     criterion = torch.nn.CrossEntropyLoss()
 
-    train(opt.n_epoch, train_data, test_data, model, optimizer_1, optimizer_2, criterion)
+    train(opt.n_epoch, train_data, test_data, model, optimizer_1, optimizer_2, criterion, writer)
     
 def entropy(dispatch): 
     
     return 
 
-def train(n_epoch, data, test_data, model, optimizer_1, optimizer_2, criterion):
+def train(n_epoch, data, test_data, model, optimizer_1, optimizer_2, criterion, writer):
     # train loop
-    for epoch in range(0, n_epoch):
+    for epoch in range(1, n_epoch+1):
         model.train()
         optimizer_1.zero_grad()
         optimizer_2.zero_grad()
 
         output, dispatch, load_balancing_loss = model(data[0])
-        loss = criterion(output, data[1].type(torch.LongTensor)) #+ load_balancing_loss * 0.001
+        train_loss = criterion(output, data[1].type(torch.LongTensor)) #+ load_balancing_loss * 0.001
 
         prediction = torch.max(output, dim=-1)
         correct = prediction.indices.eq(data[1].type(torch.LongTensor)).sum()
 
-        loss.backward()
+        train_loss.backward()
         optimizer_1.step()
         optimizer_2.step()
 
         model.eval()
         with torch.no_grad():
             output, _, _ = model(test_data[0])
+            test_loss = criterion(output, test_data[1].type(torch.LongTensor))
             prediction = torch.max(output, dim=-1)
             test_correct = prediction.indices.eq(test_data[1].type(torch.LongTensor)).sum()
 
-        print('### EPOCH: %d  ### Loss: %.3f  ### Accuracy %.3f  ### Test Accuracy %.3f' % (epoch, loss.item(), correct/data[1].shape[0], test_correct/test_data[1].shape[0]))
+        print('### EPOCH: %d  ### Train Loss: %.3f  ### Train Accuracy %.3f  ### Test Loss %.3f  ### Test Accuracy %.3f' % (epoch, train_loss.item(), correct/data[1].shape[0], test_loss.item(), test_correct/test_data[1].shape[0]))
+        writer.add_scalar('Train Loss', train_loss.item(), epoch)
+        writer.add_scalar('Test Loss', test_loss.item(), epoch)
+        writer.add_scalar('Accuracy', correct/data[1].shape[0], epoch)
+        writer.add_scalar('Test Accuracy', test_correct/test_data[1].shape[0], epoch)
 
 if __name__ == "__main__":
     main()
