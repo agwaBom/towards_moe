@@ -6,6 +6,12 @@ Which still has a lot of work to do.
 
 **NOTE: I am not an author of the paper!!**
 
+<img src="images/linear_moe.gif" width="400"><img src="images/non_linear_moe.gif" width="400">
+<p align = "center">
+Figure 1. A linear (left) and a non-linear (right) moe model that learns to dispatch data points to 8 experts.
+</p>
+
+## Dataset
 Below is the tsne visualization of synthetic data.
 <p align = "center">
 <img src="images/synthetic_cluster.png" width="500">
@@ -41,19 +47,6 @@ Figure 3. Accuracy and loss graph on each setting of model
 | MoE (linear)       |              96.2 |        128 (16*8) |
 | MoE (nonlinear)    |              1.00 |        128 (16*8) |
 
-<p align = "center">
-<img src="images/linear_moe.gif" width="500">
-</p>
-<p align = "center">
-Figure 4. A linear moe model that learns to dispatch data points to 8 experts.
-</p>
-
-<p align = "center">
-<img src="images/non_linear_moe.gif" width="500">
-</p>
-<p align = "center">
-Figure 5. A non-linear moe model that learns to dispatch data points to 8 experts
-</p>
 
 ## Future work
 ### Model side
