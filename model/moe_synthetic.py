@@ -9,8 +9,8 @@ class Custom_Conv1d(nn.Module):
         self.filter_size = filter_size
         self.linear = linear
         if small_init:
-            self.conv.weight = torch.nn.Parameter(self.conv.weight*0.1) 
-            self.conv.bias = torch.nn.Parameter(self.conv.bias*0.1) 
+            self.conv.weight = torch.nn.Parameter(self.conv.weight*0.001) 
+            self.conv.bias = torch.nn.Parameter(self.conv.bias*0.001) 
 
     def cubic_act(self, x):
         return x**3
@@ -32,7 +32,6 @@ class MoE(nn.Module):
         self.gating_param = nn.Conv1d(in_channels=1, out_channels=num_expert, kernel_size=int(patch_dim*num_patches/num_patches), stride=int(patch_dim*num_patches/num_patches))
         self.softmax = nn.Softmax(dim=-1)
         self.num_expert = num_expert
-
         self.strategy = strategy # Gating strategy
 
         self.expert = nn.ModuleList()
@@ -43,10 +42,10 @@ class MoE(nn.Module):
         # Zero init
         self.gating_param.weight = torch.nn.Parameter(self.gating_param.weight * 0)
 
-    def forward(self, x):
+    def forward(self, x, training=True):
         # x [num_data, 1, num_patches * patch_dim]
 
-        # h(x; Θ): [num_data, num_expert, patch_dim]
+        # h: [num_data, num_expert, num_patches]
         h = self.gating_param(x)
 
         # h: [num_data, num_expert]
@@ -54,7 +53,8 @@ class MoE(nn.Module):
 
         # Calculate π : [num_data, num_expert]
         if self.strategy == 'top-1':
-            h = h + torch.rand((h.shape[0], h.shape[1])).to(self.device)
+            if training:
+                h = h + torch.rand((h.shape[0], h.shape[1])).to(self.device)
             # this will be argmax top 1 routing
             pi_val, pi_idx = h.topk(k=1, dim=-1) 
             mask = F.one_hot(pi_idx, self.num_expert).type(torch.float)

@@ -34,12 +34,12 @@ def main():
     parser.add_argument("-init_scale", default=1)
 
     parser.add_argument("-num_patches", default=4)
-    parser.add_argument("-num_expert", default=1)
+    parser.add_argument("-num_expert", default=8)
     parser.add_argument("-patch_dim", default=50)
-    parser.add_argument("-filter_size", default=512)
+    parser.add_argument("-filter_size", default=16)
     parser.add_argument("-linear", default=False)
 
-    parser.add_argument("-tensorboard_path", default="./runs/synthetic_single_non_linear_adam")
+    parser.add_argument("-tensorboard_path", default="./runs/synthetic_moe_non_linear")
 
     opt =  parser.parse_args()
 
@@ -49,10 +49,10 @@ def main():
     test_data = read_data(opt.test_data_path, opt.test_label_path)
 
     model = MoE(opt.num_patches, opt.num_expert, opt.patch_dim, opt.filter_size, device, opt.linear, strategy='top-1')
-    optimizer_1 = optim.SGD(model.expert.parameters(), lr=opt.lr_global)
+    optimizer_1 = Frobenius_SGD(model.expert.parameters(), lr=opt.lr_global)
     #optimizer_1 = optim.Adam(model.parameters(), lr=0.003, weight_decay=5e-4)
 
-    optimizer_2 = Frobenius_SGD(model.gating_param.parameters(), lr=opt.lr_router)
+    optimizer_2 = optim.SGD(model.gating_param.parameters(), lr=opt.lr_router)
     criterion = torch.nn.CrossEntropyLoss()
 
     train(opt.n_epoch, train_data, test_data, model, optimizer_1, optimizer_2, criterion, writer, device)
@@ -67,13 +67,15 @@ def train(n_epoch, train_data, test_data, model, optimizer_1, optimizer_2, crite
         test_data = (test_data[0].to(device), test_data[1].to(device))
         model.to(device)
 
+    dispatch_label = []
+
     # train loop
     for epoch in range(1, n_epoch+1):
         model.train()
         optimizer_1.zero_grad()
         optimizer_2.zero_grad()
 
-        output, dispatch, load_balancing_loss = model(train_data[0])
+        output, dispatch, load_balancing_loss = model(train_data[0], training=True)
         train_loss = criterion(output, train_data[1].type(torch.LongTensor).to(device)) #+ load_balancing_loss * 0.001
 
         prediction = torch.max(output, dim=-1)
@@ -85,16 +87,21 @@ def train(n_epoch, train_data, test_data, model, optimizer_1, optimizer_2, crite
 
         model.eval()
         with torch.no_grad():
-            output, _, _ = model(test_data[0])
+            output, test_dispatch, _ = model(test_data[0], training=False)
             test_loss = criterion(output, test_data[1].type(torch.LongTensor).to(device))
             prediction = torch.max(output, dim=-1)
             test_correct = prediction.indices.eq(test_data[1].type(torch.LongTensor).to(device)).sum()
+
+        if epoch % 10 == 0:
+            dispatch_label.append(torch.argmax(test_dispatch, dim=-1))
 
         print('### EPOCH: %d  ### Train Loss: %.3f  ### Train Accuracy %.3f  ### Test Loss %.3f  ### Test Accuracy %.3f' % (epoch, train_loss.item(), correct/train_data[1].shape[0], test_loss.item(), test_correct/test_data[1].shape[0]))
         writer.add_scalar('Train Loss', train_loss.item(), epoch)
         writer.add_scalar('Test Loss', test_loss.item(), epoch)
         writer.add_scalar('Accuracy', correct/train_data[1].shape[0], epoch)
         writer.add_scalar('Test Accuracy', test_correct/test_data[1].shape[0], epoch)
+
+    #torch.save(torch.stack(dispatch_label, dim=0), './linear_expert_label.pt')
 
 if __name__ == "__main__":
     main()

@@ -21,22 +21,39 @@ Figure 1. Each color denotes a cluster in synthetic data
 Figure 2. Labels on each data point in synthetic data
 </p>
 
+
+
 ## Performance
 - Performance after 500 epoch
 
 <p align = "center">
 <img src="images/towards_moe_test_accuracy.png" width="1000">
+<img src="images/towards_moe_test_loss.png" width="1000">
 </p>
 <p align = "center">
-Figure 3. Accuracy graph on each setting of model
+Figure 3. Accuracy and loss graph on each setting of model
 </p>
 
 |                    | Test accuracy (%) | Number of Filters |
 |--------------------|-------------------|-------------------|
-| Single (linear)    |              59.3 |               512 |
-| Single (nonlinear) |              73.2 |               512 |
-| MoE (linear)       |              99.7 |        128 (16*8) |
-| MoE (nonlinear)    |              99.7 |        128 (16*8) |
+| Single (linear)    |              76.3 |               512 |
+| Single (nonlinear) |              80.6 |               512 |
+| MoE (linear)       |              96.2 |        128 (16*8) |
+| MoE (nonlinear)    |              1.00 |        128 (16*8) |
+
+<p align = "center">
+<img src="images/linear_moe.gif" width="500">
+</p>
+<p align = "center">
+Figure 4. A linear moe model that learns to dispatch data points to 8 experts.
+</p>
+
+<p align = "center">
+<img src="images/non_linear_moe.gif" width="500">
+</p>
+<p align = "center">
+Figure 5. A non-linear moe model that learns to dispatch data points to 8 experts
+</p>
 
 ## Future work
 ### Model side
